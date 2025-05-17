@@ -1,6 +1,8 @@
 from app.repositories.todo_repository import TodoRepository
 from app.models.todo import Todo
 from app.schemas.todo import TodoCreate, TodoResponse
+from typing import Optional
+from datetime import datetime
 
 
 class TodoService:
@@ -27,7 +29,7 @@ class TodoService:
         todo = Todo(
             title=todo_data.title,
             description=todo_data.description,
-            completed=todo_data.completed
+            completed=False
         )
         
         # Сохраняем через репозиторий
@@ -43,11 +45,9 @@ class TodoService:
         if not existing_todo:
             return None
         
-        # Обновляем поля
-        existing_todo.title = todo_data.title
-        existing_todo.description = todo_data.description
-        existing_todo.completed = todo_data.completed
-        
+        # Обновляем данные через метод модели
+        existing_todo.update(title=todo_data.title, description=todo_data.description, completed=todo_data.completed)
+
         # Сохраняем изменения
         updated_todo = self.repository.update(todo_id, existing_todo)
         
@@ -66,6 +66,5 @@ class TodoService:
             description=todo.description,
             completed=todo.completed,
             created_at=todo.created_at,
-            updated_at=todo.updated_at,
-            comment="Bla-bla-bla!!!"
+            updated_at=todo.updated_at
         )

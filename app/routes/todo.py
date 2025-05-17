@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 
-from app.schemas.todo import TodoCreate, TodoResponse
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdate
 from app.services.todo_service import TodoService
 
 router = APIRouter(prefix="/todo", tags=["todo"])
@@ -29,7 +29,7 @@ async def create_todo(todo_data: TodoCreate):
     return todo_service.create_todo(todo_data)
 
 @router.put("/update_by_id/{todo_id}", response_model=TodoResponse)
-async def update_todo(todo_id: int, todo_data: TodoCreate):
+async def update_todo(todo_id: int, todo_data: TodoUpdate):
     """Обновить задачу."""
     todo = todo_service.update_todo(todo_id, todo_data)
     if not todo:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -10,23 +10,17 @@ class Todo:
         self.title = title
         self.description = description
         self.completed = completed
-        self.created_at = created_at or datetime.utcnow()
-        self.updated_at = updated_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.updated_at = updated_at or datetime.now(timezone.utc)
     
-    def mark_as_completed(self) -> None:
-        """Отметить задачу как выполненную."""
-        self.completed = True
-        self.updated_at = datetime.utcnow()
-    
-    def mark_as_incomplete(self) -> None:
-        """Отметить задачу как невыполненную."""
-        self.completed = False
-        self.updated_at = datetime.utcnow()
-    
-    # def update(self, title: Optional[str] = None, description: Optional[str] = None) -> None:
-    #     """Обновить данные задачи."""
-    #     if title is not None:
-    #         self.title = title
-    #     if description is not None:
-    #         self.description = description
-    #     self.updated_at = datetime.utcnow()
+    def update(self, title: Optional[str] = None, description: Optional[str] = None, completed: Optional[bool] = None) -> None:
+        """Обновить данные задачи."""
+        if title is not None:
+            self.title = title
+        if description is not None:
+            self.description = description
+        if completed is not None:
+            self.completed = completed
+        self.updated_at = datetime.now(timezone.utc)
+
+   
