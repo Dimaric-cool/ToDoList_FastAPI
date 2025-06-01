@@ -9,11 +9,15 @@ class TodoCreate(BaseModel):
     description: str = Field(None, max_length=1000, description="Описание задачи")
 
 
-class TodoUpdate(BaseModel):
-    """Схема для обновления задачи."""
+class TodoUpdateFields(BaseModel):
+    """Схема для обновления полей задачи (без статуса)."""
     title: Optional[str] = Field(None, min_length=1, max_length=100, description="Заголовок задачи")
     description: Optional[str] = Field(None, max_length=1000, description="Описание задачи")
-    completed: Optional[bool] = Field(None, description="Статус выполнения задачи")
+
+
+class TodoUpdateStatus(BaseModel):
+    """Схема для обновления статуса задачи."""
+    completed: bool = Field(..., description="Статус выполнения задачи")
 
 
 class TodoResponse(BaseModel):

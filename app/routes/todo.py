@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 
-from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdate
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus
 from app.services.todo_service import TodoService
 
 router = APIRouter(prefix="/todo", tags=["todo"])
@@ -28,14 +28,35 @@ async def create_todo(todo_data: TodoCreate):
     """Создать новую задачу."""
     return todo_service.create_todo(todo_data)
 
-@router.put("/update_by_id/{todo_id}", response_model=TodoResponse)
-async def update_todo(todo_id: int, todo_data: TodoUpdate):
-    """Обновить задачу."""
-    todo = todo_service.update_todo(todo_id, todo_data)
-    if not todo:
+@router.put("/update_fields/{todo_id}", response_model=TodoResponse)
+async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields):
+    """Обновить поля задачи (без статуса)."""
+    todo = todo_service.update_todo_fields(todo_id, todo_data)
+    if todo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Задача с ID {todo_id} не найдена"
+        )
+    if todo is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Не указаны поля для обновления"
+        )
+    return todo
+
+@router.put("/update_status/{todo_id}", response_model=TodoResponse)
+async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus):
+    """Обновить статус задачи."""
+    todo = todo_service.update_todo_status(todo_id, todo_data)
+    if todo is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Задача с ID {todo_id} не найдена"
+        )
+    if todo is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Задача уже имеет указанный статус"
         )
     return todo
 

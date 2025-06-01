@@ -13,14 +13,22 @@ class Todo:
         self.created_at = created_at or datetime.now(timezone.utc)
         self.updated_at = updated_at or datetime.now(timezone.utc)
     
-    def update(self, title: Optional[str] = None, description: Optional[str] = None, completed: Optional[bool] = None) -> None:
+    def update(self, title: Optional[str] = None, description: Optional[str] = None, completed: Optional[bool] = None) -> bool:
         """Обновить данные задачи."""
+        isupdated = False
         if title is not None:
             self.title = title
+            isupdated = True
         if description is not None:
             self.description = description
-        if completed is not None:
+            isupdated = True
+        if completed is not None and completed != self.completed:
             self.completed = completed
-        self.updated_at = datetime.now(timezone.utc)
+            isupdated = True
+        if isupdated:
+            # self.updated_at = datetime.now(timezone.utc)
+            return True
+        else:
+            return False
 
    
