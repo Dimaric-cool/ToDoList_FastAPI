@@ -1,6 +1,6 @@
 from app.repositories.todo_repository import TodoRepository
 from app.models.todo import Todo
-from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoGetAll
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -11,9 +11,9 @@ class TodoService:
     def __init__(self, todo_repository=None):
         self.repository = todo_repository or TodoRepository()
     
-    def get_all_todos(self):
+    def get_all_todos(self, filters: TodoGetAll):
         """Получить все задачи."""
-        todos = self.repository.get_all()
+        todos = self.repository.get_all(filters)
         return [self._to_response(todo) for todo in todos]
     
     def get_todo_by_id(self, todo_id):
@@ -38,22 +38,6 @@ class TodoService:
         # Преобразуем в DTO для ответа
         return self._to_response(created_todo)
     
-    def update_todo(self, todo_id, todo_data):
-        """Обновить существующую задачу."""
-        # Получаем существующую задачу
-        existing_todo = self.repository.get_by_id(todo_id)
-        if not existing_todo:
-            return None
-        
-        # Обновляем данные через метод модели
-        if not existing_todo.update(title=todo_data.title, description=todo_data.description, completed=todo_data.completed):
-            return False
-
-        # Сохраняем изменения
-        updated_todo = self.repository.update(todo_id, existing_todo)
-        
-        # Преобразуем в DTO для ответа
-        return self._to_response(updated_todo)
     
     def delete_todo(self, todo_id):
         """Удалить задачу."""

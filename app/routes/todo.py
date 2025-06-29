@@ -1,16 +1,21 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 
-from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoGetAll
 from app.services.todo_service import TodoService
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 todo_service = TodoService()
 
-@router.get("/get_all", response_model=List[TodoResponse])
-async def get_all_todos():
+@router.put("/get_all", response_model=List[TodoResponse])
+async def get_all_todos(filters: TodoGetAll):
     """Получить все задачи."""
-    return todo_service.get_all_todos()
+    if filters.only_active and filters.only_completed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Невозможно одновременно отображать только активные и только выполненные задачи"
+        )
+    return todo_service.get_all_todos(filters)
 
 @router.get("/get_by_id/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
 async def get_todo(todo_id: int):

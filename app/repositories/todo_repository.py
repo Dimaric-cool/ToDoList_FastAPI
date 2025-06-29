@@ -1,16 +1,61 @@
 from app.models.todo import Todo
-
+from app.schemas.todo import TodoGetAll
+from datetime import datetime, timedelta
 
 class TodoRepository:
     """Репозиторий для работы с задачами (in-memory реализация)."""
     
     def __init__(self):
         self._storage = {}  # "сырое" хранилище: {id: {title: "...", ...}}
+        now = datetime.utcnow()
+        tasks = [
+            {
+                "title": "Первая задача",
+                "description": "Описание первой задачи",
+                "completed": False,
+                "created_at": now,
+                "updated_at": now + timedelta(minutes=15)
+            },
+            {
+                "title": "Вторая задача",
+                "description": "Описание второй задачи",
+                "completed": True,
+                "created_at": now + timedelta(minutes=10),
+                "updated_at": now + timedelta(minutes=12)
+            },
+            # Добавьте больше задач по желанию
+        ]
         self.next_id = 1
+        for task in tasks:
+            todo = Todo(
+                id=None,  # id будет присвоен в create
+                title=task["title"],
+                description=task["description"],
+                completed=task["completed"],
+                created_at=task["created_at"],
+                updated_at=task["updated_at"]
+            )
+            self.create(todo)
     
-    def get_all(self):
-        """Получить все задачи."""
-        return [self.get_by_id(todo_id) for todo_id in self._storage.keys()]
+    def get_all(self, filters: TodoGetAll):
+        """Получить все задачи с фильтрацией и сортировкой."""
+        # Фильтрация
+        if filters.only_active and filters.only_completed:
+            raise ValueError("Нельзя одновременно фильтровать только активные и только завершённые задачи.")
+        if filters.only_active:
+            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys() if not self._storage[todo_id]["completed"]]
+        elif filters.only_completed:
+            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys() if self._storage[todo_id]["completed"]]
+        else:
+            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys()]
+
+        # Сортировка
+        if filters.sort_by and filters.sort_by in {"id", "created_at", "updated_at"}:
+            sort_field = filters.sort_by  # теперь точно str, не None
+            reverse = filters.sort_order == "desc"
+            todos.sort(key=lambda todo: getattr(todo, sort_field), reverse=reverse)
+
+        return todos
     
     def get_by_id(self, todo_id):
         """Получить задачу по ID."""
