@@ -1,5 +1,5 @@
 from app.models.todo import Todo
-from app.schemas.todo import TodoGetAll
+from app.schemas.todo import TodoFilter
 from datetime import datetime, timedelta
 
 class TodoRepository:
@@ -37,7 +37,7 @@ class TodoRepository:
             )
             self.create(todo)
     
-    def get_all(self, filters: TodoGetAll):
+    def get_all(self, filters: TodoFilter):
         """Получить все задачи с фильтрацией и сортировкой."""
         # Фильтрация
         if filters.only_active and filters.only_completed:

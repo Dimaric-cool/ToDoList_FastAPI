@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  todo-api:
+    build: .
+    ports:
+      - "${PORT}:8000"
+    volumes:
+      - ./app:/app/app
+      - ./main.py:/app/main.py
+    environment:
+      - DEBUG=${DEBUG}
+      - RELOAD=${RELOAD}
+    command: ["uvicorn", "main:app", "--host", "${HOST}", "--port", "${PORT}", "${EXTRA_ARGS}"]
+    restart: unless-stopped
+    container_name: todo-api-container
+    
+  # Можно добавить базу данных (например, PostgreSQL)
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: todolist
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data: 

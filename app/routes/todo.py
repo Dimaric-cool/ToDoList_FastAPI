@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 
-from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoGetAll
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoFilter
 from app.services.todo_service import TodoService
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 todo_service = TodoService()
 
 @router.put("/get_all", response_model=List[TodoResponse])
-async def get_all_todos(filters: TodoGetAll):
+async def get_all_todos(filters: TodoFilter):
     """Получить все задачи."""
     if filters.only_active and filters.only_completed:
         raise HTTPException(

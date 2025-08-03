@@ -1,6 +1,6 @@
 from app.repositories.todo_repository import TodoRepository
 from app.models.todo import Todo
-from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoGetAll
+from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoFilter
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -11,7 +11,7 @@ class TodoService:
     def __init__(self, todo_repository=None):
         self.repository = todo_repository or TodoRepository()
     
-    def get_all_todos(self, filters: TodoGetAll):
+    def get_all_todos(self, filters: TodoFilter):
         """Получить все задачи."""
         todos = self.repository.get_all(filters)
         return [self._to_response(todo) for todo in todos]
@@ -87,5 +87,6 @@ class TodoService:
             description=todo.description,
             completed=todo.completed,
             created_at=todo.created_at,
-            updated_at=todo.updated_at
+            updated_at=todo.updated_at,
+            comment=None
         )
