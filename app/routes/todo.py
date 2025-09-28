@@ -1,25 +1,28 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
+from sqlalchemy.orm import Session
 
 from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoFilter
 from app.services.todo_service import TodoService
+from app.database import get_db
 
 router = APIRouter(prefix="/todo", tags=["todo"])
-todo_service = TodoService()
 
 @router.put("/get_all", response_model=List[TodoResponse])
-async def get_all_todos(filters: TodoFilter):
+async def get_all_todos(filters: TodoFilter, db: Session = Depends(get_db)):
     """Получить все задачи."""
     if filters.only_active and filters.only_completed:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Невозможно одновременно отображать только активные и только выполненные задачи"
         )
+    todo_service = TodoService(db)
     return todo_service.get_all_todos(filters)
 
 @router.get("/get_by_id/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
-async def get_todo(todo_id: int):
+async def get_todo(todo_id: int, db: Session = Depends(get_db)):
     """Получить задачу по ID."""
+    todo_service = TodoService(db)
     todo = todo_service.get_todo_by_id(todo_id)
     if not todo:
         raise HTTPException(
@@ -29,13 +32,15 @@ async def get_todo(todo_id: int):
     return todo
 
 @router.post("/create", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
-async def create_todo(todo_data: TodoCreate):
+async def create_todo(todo_data: TodoCreate, db: Session = Depends(get_db)):
     """Создать новую задачу."""
+    todo_service = TodoService(db)
     return todo_service.create_todo(todo_data)
 
 @router.put("/update_fields/{todo_id}", response_model=TodoResponse)
-async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields):
+async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields, db: Session = Depends(get_db)):
     """Обновить поля задачи (без статуса)."""
+    todo_service = TodoService(db)
     todo = todo_service.update_todo_fields(todo_id, todo_data)
     if todo is None:
         raise HTTPException(
@@ -50,8 +55,9 @@ async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields):
     return todo
 
 @router.put("/update_status/{todo_id}", response_model=TodoResponse)
-async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus):
+async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus, db: Session = Depends(get_db)):
     """Обновить статус задачи."""
+    todo_service = TodoService(db)
     todo = todo_service.update_todo_status(todo_id, todo_data)
     if todo is None:
         raise HTTPException(
@@ -66,8 +72,9 @@ async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus):
     return todo
 
 @router.delete("/delete_by_id/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_todo(todo_id: int):
+async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     """Удалить задачу."""
+    todo_service = TodoService(db)
     success = todo_service.delete_todo(todo_id)
     if not success:
         raise HTTPException(

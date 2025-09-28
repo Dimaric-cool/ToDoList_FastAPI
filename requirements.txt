@@ -16,4 +16,9 @@ pytest>=7.4.3
 pytest-asyncio>=0.21.1
 
 # Инструменты разработки
-black>=23.10.0 
+black>=23.10.0
+
+# Для работы с базой данных и миграциями
+psycopg2-binary>=2.9.7
+sqlalchemy>=2.0.23
+alembic>=1.12.1 

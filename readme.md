@@ -1,8 +1,8 @@
-# ToDo API
+# ToDo API с FastAPI и PostgreSQL
 
 ## Описание проекта
 
-Это простое API для управления списком задач (ToDo), разработанное с использованием FastAPI. Приложение позволяет создавать, просматривать, обновлять и удалять задачи.
+Полнофункциональное API для управления списком задач (ToDo), разработанное с использованием FastAPI и PostgreSQL.
 
 ## Функциональность
 
@@ -18,53 +18,42 @@
 - FastAPI
 - Pydantic
 - Uvicorn
+- PostgreSQL
+- Docker & Docker Compose
+- Goose (миграции базы данных)
 
-## Установка и запуск
+## Быстрый старт
 
-### Предварительные требования
-
-- Python 3.13 или выше
-- pip (менеджер пакетов Python)
-
-### Шаги по установке
-
-1. Клонируйте репозиторий:
+### 1. Запуск контейнера с базой данных
 ```bash
-git clone https://github.com/your-username/todo-api.git
-cd todo-api
+docker-compose up -d
 ```
 
-2. Создайте и активируйте виртуальное окружение:
+### 2. Накатывание миграций
 ```bash
-python -m venv .venv
-# Для Windows
-.venv\Scripts\activate
-# Для Linux/Mac
-source .venv/bin/activate
+goose -dir .\migrations\ postgres "postgres://postgres:postgres@localhost:5432/todolist?sslmode=disable" up
 ```
 
-3. Установите зависимости:
+### 3. Запуск приложения
 ```bash
-pip install -r requirements.txt
+docker-compose up
 ```
 
-### Запуск приложения
-
-```bash
-python main.py
+### 4. Открыть в браузере
 ```
-
-Приложение будет доступно по адресу: http://localhost:8000
-
-## API документация
-
-После запуска приложения, документация Swagger UI доступна по адресу:
 http://localhost:8000/docs
+```
+
+## Установка Goose (если не установлен)
+
+```bash
+goose install github.com/pressly/goose/v3/cmd/goose@latest
+```
 
 ## Структура проекта
 
 ```
-todo-api/
+ToDoList_FastAPI/
 ├── app/
 │   ├── models/         # Модели данных
 │   ├── repositories/   # Репозитории для работы с данными
@@ -72,46 +61,9 @@ todo-api/
 │   ├── schemas/        # Pydantic схемы для валидации
 │   ├── services/       # Бизнес-логика
 │   └── config.py       # Конфигурация приложения
+├── migrations/         # Файлы миграций базы данных
 ├── main.py             # Точка входа в приложение
-└── requirements.txt    # Зависимости проекта
+├── requirements.txt    # Зависимости проекта
+├── docker-compose.yml  # Конфигурация Docker Compose
+├── Dockerfile          # Docker образ
 ```
-
-## Примеры использования API
-
-### Получение всех задач
-
-```bash
-curl -X GET http://localhost:8000/todo/get_all
-```
-
-### Создание новой задачи
-
-```bash
-curl -X POST http://localhost:8000/todo/create \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Новая задача", "description": "Описание задачи", "completed": false}'
-```
-
-### Получение задачи по ID
-
-```bash
-curl -X GET http://localhost:8000/todo/get_by_id/1
-```
-
-### Обновление задачи
-
-```bash
-curl -X PUT http://localhost:8000/todo/update_by_id/1 \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Обновленная задача", "description": "Новое описание", "completed": true}'
-```
-
-### Удаление задачи
-
-```bash
-curl -X DELETE http://localhost:8000/todo/delete_by_id/1
-```
-
-## Лицензия
-
-MIT

@@ -1,22 +1,15 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
 
 class Settings(BaseSettings):
     """Настройки приложения."""
     app_name: str = "ToDo API"
     debug: bool = True
     
-    # # Настройки базы данных
-    # database_url: str = "sqlite:///./todo.db"
     
-    # # Настройки безопасности
-    # secret_key: str = "your-secret-key"
-    # token_expire_minutes: int = 60
+    database_url: str = Field(default="postgresql://postgres:postgres@postgres:5432/todolist", env="SQLALCHEMY_DATABASE_URL")
     
-    # # Настройки сервера
-    # host: str = "0.0.0.0"
-    # port: int = 8000
-    
-    # class Config:
-    #     env_file = ".env"
+    class Config:
+        env_file = ".env"
 
 settings = Settings()

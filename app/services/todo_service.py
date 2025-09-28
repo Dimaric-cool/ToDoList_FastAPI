@@ -3,13 +3,15 @@ from app.models.todo import Todo
 from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoFilter
 from typing import Optional
 from datetime import datetime, timezone
+from sqlalchemy.orm import Session
 
 
 class TodoService:
     """Сервис для работы с задачами."""
     
-    def __init__(self, todo_repository=None):
-        self.repository = todo_repository or TodoRepository()
+    def __init__(self, db: Session):
+        self.db = db
+        self.repository = TodoRepository(db)
     
     def get_all_todos(self, filters: TodoFilter):
         """Получить все задачи."""

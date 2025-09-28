@@ -1,112 +1,106 @@
+from sqlalchemy.orm import Session
 from app.models.todo import Todo
 from app.schemas.todo import TodoFilter
+from app.models.db.todo import TodoModel
 from datetime import datetime, timedelta
+from typing import List, Optional
 
 class TodoRepository:
-    """Репозиторий для работы с задачами (in-memory реализация)."""
+    """Репозиторий для работы с задачами (PostgreSQL реализация)."""
     
-    def __init__(self):
-        self._storage = {}  # "сырое" хранилище: {id: {title: "...", ...}}
-        now = datetime.utcnow()
-        tasks = [
-            {
-                "title": "Первая задача",
-                "description": "Описание первой задачи",
-                "completed": False,
-                "created_at": now,
-                "updated_at": now + timedelta(minutes=15)
-            },
-            {
-                "title": "Вторая задача",
-                "description": "Описание второй задачи",
-                "completed": True,
-                "created_at": now + timedelta(minutes=10),
-                "updated_at": now + timedelta(minutes=12)
-            },
-            # Добавьте больше задач по желанию
-        ]
-        self.next_id = 1
-        for task in tasks:
-            todo = Todo(
-                id=None,  # id будет присвоен в create
-                title=task["title"],
-                description=task["description"],
-                completed=task["completed"],
-                created_at=task["created_at"],
-                updated_at=task["updated_at"]
-            )
-            self.create(todo)
+    def __init__(self, db: Session):
+        self.db = db
     
-    def get_all(self, filters: TodoFilter):
+    def get_all(self, filters: TodoFilter) -> List[Todo]:
         """Получить все задачи с фильтрацией и сортировкой."""
+        query = self.db.query(TodoModel)
+        
         # Фильтрация
         if filters.only_active and filters.only_completed:
             raise ValueError("Нельзя одновременно фильтровать только активные и только завершённые задачи.")
+        
         if filters.only_active:
-            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys() if not self._storage[todo_id]["completed"]]
+            query = query.filter(TodoModel.completed == False)
         elif filters.only_completed:
-            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys() if self._storage[todo_id]["completed"]]
-        else:
-            todos = [self.get_by_id(todo_id) for todo_id in self._storage.keys()]
-
+            query = query.filter(TodoModel.completed == True)
+        
         # Сортировка
         if filters.sort_by and filters.sort_by in {"id", "created_at", "updated_at"}:
-            sort_field = filters.sort_by  # теперь точно str, не None
-            reverse = filters.sort_order == "desc"
-            todos.sort(key=lambda todo: getattr(todo, sort_field), reverse=reverse)
-
-        return todos
+            sort_field = getattr(TodoModel, filters.sort_by)
+            if filters.sort_order == "desc":
+                query = query.order_by(sort_field.desc())
+            else:
+                query = query.order_by(sort_field.asc())
+        
+        # Выполняем запрос и преобразуем в доменные модели
+        todo_models = query.all()
+        return [self._convert_to_todo(model) for model in todo_models]
     
-    def get_by_id(self, todo_id):
+    def get_by_id(self, todo_id: int) -> Optional[Todo]:
         """Получить задачу по ID."""
-        raw_data = self._storage.get(todo_id)
-        if not raw_data:
+        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+        if not todo_model:
             return None
         
-        # Преобразуем "сырые" данные в доменную модель - как будем делать с ORM
-        return Todo(
-            id=todo_id,
-            title=raw_data["title"],
-            description=raw_data["description"],
-            completed=raw_data["completed"],
-            created_at=raw_data["created_at"],
-            updated_at=raw_data["updated_at"]
-        )
+        return self._convert_to_todo(todo_model)
     
-    def create(self, todo):
+    def create(self, todo: Todo) -> Todo:
         """Создать новую задачу."""
-        todo.id = self.next_id
-        self._storage[self.next_id] = {
-            "id": todo.id,
-            "title": todo.title,
-            "description": todo.description,
-            "completed": todo.completed,
-            "created_at": todo.created_at,
-            "updated_at": todo.updated_at
-        }
-        self.next_id += 1
+        # Создаем SQLAlchemy модель прямо в репозитории
+        todo_model = TodoModel(
+            title=todo.title,
+            description=todo.description,
+            completed=todo.completed,
+            created_at=todo.created_at,
+            updated_at=todo.updated_at
+        )
+        
+        self.db.add(todo_model)
+        self.db.commit()
+        
+        # Обновляем ID в доменной модели
+        todo.id = todo_model.id
         return todo
     
-    def update(self, todo_id, todo):
+    def update(self, todo_id: int, todo: Todo) -> Optional[Todo]:
         """Обновить существующую задачу."""
-        if todo_id not in self._storage:
+        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+        if not todo_model:
             return None
         
-        # Сохраняем доменную модель как "сырые" данные - как будем делать с ORM
-        self._storage[todo_id] = {
-            "title": todo.title,
-            "description": todo.description,
-            "completed": todo.completed,
-            "created_at": todo.created_at,
-            "updated_at": todo.updated_at
-        }
+        # Обновляем поля
+        if todo.title is not None:
+            todo_model.title = todo.title
+        if todo.description is not None:
+            todo_model.description = todo.description
+        if todo.completed is not None:
+            todo_model.completed = todo.completed
         
-        return todo  # Возвращаем обновленную модель напрямую
+        # Обновляем время изменения
+        todo_model.updated_at = datetime.utcnow()
+        
+        self.db.commit()
+        
+        # Возвращаем обновленную доменную модель
+        return self._convert_to_todo(todo_model)
     
-    def delete(self, todo_id):
+    def delete(self, todo_id: int) -> bool:
         """Удалить задачу."""
-        if todo_id not in self._storage:
+        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+        if not todo_model:
             return False
         
-        del self._storage[todo_id]
+        self.db.delete(todo_model)
+        self.db.commit()
         return True
+    
+    def _convert_to_todo(self, model: TodoModel) -> Todo:
+        """Преобразовать SQLAlchemy модель в доменную модель."""
+        return Todo(
+            id=model.id,
+            title=model.title,
+            description=model.description,
+            completed=model.completed,
+            created_at=model.created_at,
+            updated_at=model.updated_at
+        )
