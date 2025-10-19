@@ -11,7 +11,7 @@ class TodoRepository:
     def __init__(self, db: Session):
         self.db = db
     
-    def get_all(self, filters: TodoFilter) -> List[Todo]:
+    def get_all(self, filters: TodoFilter, user_id: int) -> List[Todo]:
         """Получить все задачи с фильтрацией и сортировкой."""
         query = self.db.query(TodoModel)
         
@@ -33,12 +33,12 @@ class TodoRepository:
                 query = query.order_by(sort_field.asc())
         
         # Выполняем запрос и преобразуем в доменные модели
-        todo_models = query.all()
+        todo_models = query.filter(TodoModel.user_id == user_id).all()
         return [self._convert_to_todo(model) for model in todo_models]
     
-    def get_by_id(self, todo_id: int) -> Optional[Todo]:
+    def get_by_id(self, todo_id: int, user_id: int) -> Optional[Todo]:
         """Получить задачу по ID."""
-        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id, TodoModel.user_id == user_id).first()
         if not todo_model:
             return None
         
@@ -48,6 +48,7 @@ class TodoRepository:
         """Создать новую задачу."""
         # Создаем SQLAlchemy модель прямо в репозитории
         todo_model = TodoModel(
+            user_id=todo.user_id,
             title=todo.title,
             description=todo.description,
             completed=todo.completed,
@@ -84,9 +85,9 @@ class TodoRepository:
         # Возвращаем обновленную доменную модель
         return self._convert_to_todo(todo_model)
     
-    def delete(self, todo_id: int) -> bool:
+    def delete(self, todo_id: int, user_id: int) -> bool:
         """Удалить задачу."""
-        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id).first()
+        todo_model = self.db.query(TodoModel).filter(TodoModel.id == todo_id, TodoModel.user_id == user_id).first()
         if not todo_model:
             return False
         

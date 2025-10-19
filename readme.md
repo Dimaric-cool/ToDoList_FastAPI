@@ -34,12 +34,7 @@ docker-compose up -d
 goose -dir .\migrations\ postgres "postgres://postgres:postgres@localhost:5432/todolist?sslmode=disable" up
 ```
 
-### 3. Запуск приложения
-```bash
-docker-compose up
-```
-
-### 4. Открыть в браузере
+### 3. Открыть в браузере
 ```
 http://localhost:8000/docs
 ```

@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 from app.schemas.todo import TodoCreate, TodoResponse, TodoUpdateFields, TodoUpdateStatus, TodoFilter
 from app.services.todo_service import TodoService
 from app.database import get_db
+from app.services.auth import get_current_user
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 
 @router.put("/get_all", response_model=List[TodoResponse])
-async def get_all_todos(filters: TodoFilter, db: Session = Depends(get_db)):
+async def get_all_todos(filters: TodoFilter, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Получить все задачи."""
     if filters.only_active and filters.only_completed:
         raise HTTPException(
@@ -17,13 +18,13 @@ async def get_all_todos(filters: TodoFilter, db: Session = Depends(get_db)):
             detail="Невозможно одновременно отображать только активные и только выполненные задачи"
         )
     todo_service = TodoService(db)
-    return todo_service.get_all_todos(filters)
+    return todo_service.get_all_todos(filters, current_user.id)
 
 @router.get("/get_by_id/{todo_id}", response_model=TodoResponse, status_code=status.HTTP_200_OK)
-async def get_todo(todo_id: int, db: Session = Depends(get_db)):
+async def get_todo(todo_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Получить задачу по ID."""
     todo_service = TodoService(db)
-    todo = todo_service.get_todo_by_id(todo_id)
+    todo = todo_service.get_todo_by_id(todo_id, current_user.id)
     if not todo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -32,13 +33,13 @@ async def get_todo(todo_id: int, db: Session = Depends(get_db)):
     return todo
 
 @router.post("/create", response_model=TodoResponse, status_code=status.HTTP_201_CREATED)
-async def create_todo(todo_data: TodoCreate, db: Session = Depends(get_db)):
+async def create_todo(todo_data: TodoCreate, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Создать новую задачу."""
     todo_service = TodoService(db)
-    return todo_service.create_todo(todo_data)
+    return todo_service.create_todo(todo_data, current_user.id)
 
 @router.put("/update_fields/{todo_id}", response_model=TodoResponse)
-async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields, db: Session = Depends(get_db)):
+async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Обновить поля задачи (без статуса)."""
     todo_service = TodoService(db)
     todo = todo_service.update_todo_fields(todo_id, todo_data)
@@ -55,10 +56,10 @@ async def update_todo_fields(todo_id: int, todo_data: TodoUpdateFields, db: Sess
     return todo
 
 @router.put("/update_status/{todo_id}", response_model=TodoResponse)
-async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus, db: Session = Depends(get_db)):
+async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Обновить статус задачи."""
     todo_service = TodoService(db)
-    todo = todo_service.update_todo_status(todo_id, todo_data)
+    todo = todo_service.update_todo_status(todo_id, todo_data, current_user.id)
     if todo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -72,10 +73,10 @@ async def update_todo_status(todo_id: int, todo_data: TodoUpdateStatus, db: Sess
     return todo
 
 @router.delete("/delete_by_id/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
+async def delete_todo(todo_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     """Удалить задачу."""
     todo_service = TodoService(db)
-    success = todo_service.delete_todo(todo_id)
+    success = todo_service.delete_todo(todo_id, current_user.id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

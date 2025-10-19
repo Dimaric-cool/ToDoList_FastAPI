@@ -13,22 +13,23 @@ class TodoService:
         self.db = db
         self.repository = TodoRepository(db)
     
-    def get_all_todos(self, filters: TodoFilter):
+    def get_all_todos(self, filters: TodoFilter, user_id: int):
         """Получить все задачи."""
-        todos = self.repository.get_all(filters)
+        todos = self.repository.get_all(filters, user_id)
         return [self._to_response(todo) for todo in todos]
     
-    def get_todo_by_id(self, todo_id):
+    def get_todo_by_id(self, todo_id, user_id):
         """Получить задачу по ID."""
-        todo = self.repository.get_by_id(todo_id)
+        todo = self.repository.get_by_id(todo_id, user_id)
         if not todo:
             return None
         return self._to_response(todo)
     
-    def create_todo(self, todo_data):
+    def create_todo(self, todo_data, user_id):
         """Создать новую задачу."""
         # Создаем модель из данных схемы
         todo = Todo(
+            user_id=user_id,
             title=todo_data.title,
             description=todo_data.description,
             completed=False
@@ -41,13 +42,13 @@ class TodoService:
         return self._to_response(created_todo)
     
     
-    def delete_todo(self, todo_id):
+    def delete_todo(self, todo_id, user_id):
         """Удалить задачу."""
-        return self.repository.delete(todo_id)
+        return self.repository.delete(todo_id, user_id)
     
-    def update_todo_fields(self, todo_id, todo_data: TodoUpdateFields):
+    def update_todo_fields(self, todo_id, todo_data: TodoUpdateFields, user_id: int):
         """Обновить поля задачи (без статуса)."""
-        existing_todo = self.repository.get_by_id(todo_id)
+        existing_todo = self.repository.get_by_id(todo_id, user_id)
         if not existing_todo:
             return None
         
@@ -66,9 +67,9 @@ class TodoService:
             return self._to_response(updated_todo)
         return False
 
-    def update_todo_status(self, todo_id, todo_data: TodoUpdateStatus):
+    def update_todo_status(self, todo_id, todo_data: TodoUpdateStatus, user_id: int):
         """Обновить только статус задачи."""
-        existing_todo = self.repository.get_by_id(todo_id)
+        existing_todo = self.repository.get_by_id(todo_id, user_id)
         if not existing_todo:
             return None
         

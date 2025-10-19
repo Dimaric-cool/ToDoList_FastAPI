@@ -5,8 +5,9 @@ from typing import Optional
 class Todo:
     """Модель задачи без привязки к базе данных."""
     
-    def __init__(self,title: str = "",description: Optional[str] = None,completed: bool = False,id: Optional[int] = None,created_at: datetime = None,updated_at: datetime = None):
+    def __init__(self,title: str = "",description: Optional[str] = None, user_id: Optional[int] = None, completed: bool = False,id: Optional[int] = None,created_at: datetime = None,updated_at: datetime = None):
         self.id = id
+        self.user_id = user_id
         self.title = title
         self.description = description
         self.completed = completed
