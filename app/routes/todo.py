@@ -17,6 +17,11 @@ async def get_all_todos(filters: TodoFilter, db: Session = Depends(get_db), curr
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Невозможно одновременно отображать только активные и только выполненные задачи"
         )
+    if filters.only_overdue and filters.only_upcoming:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Невозможно одновременно отображать только просроченные и только приближающиеся задачи"
+        )
     todo_service = TodoService(db)
     return todo_service.get_all_todos(filters, current_user.id)
 

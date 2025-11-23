@@ -1,16 +1,18 @@
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime, timezone, date
+from typing import Optional, List
 
 
 class Todo:
     """Модель задачи без привязки к базе данных."""
     
-    def __init__(self,title: str = "",description: Optional[str] = None, user_id: Optional[int] = None, completed: bool = False,id: Optional[int] = None,created_at: datetime = None,updated_at: datetime = None):
+    def __init__(self,title: str = "",description: Optional[str] = None, user_id: Optional[int] = None, completed: bool = False,id: Optional[int] = None,created_at: datetime = None,updated_at: datetime = None, due_date: Optional[date] = None, tags: Optional[List[str]] = None):
         self.id = id
         self.user_id = user_id
         self.title = title
         self.description = description
+        self.tags = tags or []
         self.completed = completed
+        self.due_date = due_date
         self.created_at = created_at or datetime.now(timezone.utc)
         self.updated_at = updated_at or datetime.now(timezone.utc)
     

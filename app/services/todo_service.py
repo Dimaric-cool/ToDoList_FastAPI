@@ -32,7 +32,9 @@ class TodoService:
             user_id=user_id,
             title=todo_data.title,
             description=todo_data.description,
-            completed=False
+            completed=False,
+            due_date=todo_data.due_date,
+            tags=todo_data.tags if todo_data.tags else []
         )
         
         # Сохраняем через репозиторий
@@ -52,13 +54,19 @@ class TodoService:
         if not existing_todo:
             return None
         
-        # Обновляем только поля title и description
+        # Обновляем поля title, description, due_date и tags
         isupdated = False
         if todo_data.title is not None:
             existing_todo.title = todo_data.title
             isupdated = True
         if todo_data.description is not None:
             existing_todo.description = todo_data.description
+            isupdated = True
+        if todo_data.due_date is not None:
+            existing_todo.due_date = todo_data.due_date
+            isupdated = True
+        if todo_data.tags is not None:
+            existing_todo.tags = todo_data.tags
             isupdated = True
             
         if isupdated:
@@ -89,6 +97,8 @@ class TodoService:
             title=todo.title,
             description=todo.description,
             completed=todo.completed,
+            due_date=todo.due_date,
+            tags=todo.tags if todo.tags else [],
             created_at=todo.created_at,
             updated_at=todo.updated_at,
             comment=None
