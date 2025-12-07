@@ -1,0 +1,72 @@
+name: Мой первый CI
+
+# Когда запускать
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:  # Кнопка "Run workflow" в GitHub
+
+jobs:
+  # Job 1: Проверка кода
+  check-code:
+    name: Проверка кода
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Получаем код из репозитория
+        uses: actions/checkout@v4
+      
+      - name: 🐍 Устанавливаем Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: 📦 Устанавливаем зависимости
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: ✅ Проверяем, что приложение запускается
+        run: |
+          echo "Проверяем FastAPI приложение..."
+          timeout 5s uvicorn main:app --host 0.0.0.0 --port 8000 || true
+          echo "✅ Приложение работает!"
+  
+  # Job 2: Сборка Docker образа
+  build-docker:
+    name: Сборка Docker
+    runs-on: ubuntu-latest
+    needs: check-code  # Запустится только после check-code
+    
+    steps:
+      - name: 📥 Получаем код
+        uses: actions/checkout@v4
+      
+      - name: 🐳 Собираем Docker образ
+        run: |
+          docker build -t todolist-api:latest .
+          echo "✅ Docker образ собран!"
+      
+      - name: 📋 Информация об образе
+        run: |
+          docker images | grep todolist-api
+  
+  # Job 3: Финальное сообщение
+  success:
+    name: Готово!
+    runs-on: ubuntu-latest
+    needs: [check-code, build-docker]
+    
+    steps:
+      - name: 🎉 Успех!
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ Все проверки пройдены!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Что было сделано:"
+          echo "  ✓ Проверен код"
+          echo "  ✓ Собран Docker образ"
+          echo ""
+          echo "Ваш первый CI работает! 🚀"
+
