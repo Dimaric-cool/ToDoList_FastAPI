@@ -5,20 +5,20 @@ set -e
 
 echo "==> Применяем миграции базы данных через Goose..."
 
-# Используем переменную окружения SQLALCHEMY_DATABASE_URL
+# Используем переменную окружения DATABASE_URL
 # Goose требует формат: goose postgres "DATABASE_URL" up
-if [ -z "$SQLALCHEMY_DATABASE_URL" ]; then
-    echo "ОШИБКА: SQLALCHEMY_DATABASE_URL не установлена"
+if [ -z "$DATABASE_URL" ]; then
+    echo "ОШИБКА: DATABASE_URL не установлена"
     exit 1
 fi
 
 # Применяем миграции (используем полный путь к goose, если он есть в /usr/local/bin)
 GOOSE_BIN="/usr/local/bin/goose"
 if [ -f "$GOOSE_BIN" ]; then
-    "$GOOSE_BIN" -dir ./migrations postgres "$SQLALCHEMY_DATABASE_URL" up
+    "$GOOSE_BIN" -dir ./migrations postgres "$DATABASE_URL" up
 else
     # Если goose в PATH
-    goose -dir ./migrations postgres "$SQLALCHEMY_DATABASE_URL" up
+    goose -dir ./migrations postgres "$DATABASE_URL" up
 fi
 
 if [ $? -eq 0 ]; then
