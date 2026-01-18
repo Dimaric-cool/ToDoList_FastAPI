@@ -9,7 +9,7 @@ USER root
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 # Скачиваем готовый бинарник Goose для Linux amd64
-RUN wget -q https://github.com/pressly/goose/releases/download/v3.20.0/goose_linux_amd64 -O /usr/local/bin/goose && \
+RUN wget -q https://github.com/pressly/goose/releases/download/v3.26.0/goose_linux_x86_64 -O /usr/local/bin/goose && \
     chmod +x /usr/local/bin/goose
 
 # Копируем файл зависимостей
