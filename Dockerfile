@@ -21,4 +21,5 @@ USER app
 EXPOSE 8000
 
 # Команда для запуска приложения
-CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"] 
+# Используем shell форму для поддержки переменной окружения PORT от Render
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"] 
