@@ -4,7 +4,8 @@ class UserBase(BaseModel):
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: str = Field(min_length=6)
+    # bcrypt принимает не более 72 байт — ограничиваем длину пароля
+    password: str = Field(min_length=6, max_length=72)
 
 class UserResponse(UserBase):
     id: int
