@@ -1,27 +1,29 @@
-
+# Локально: скопируй docker-compose.override.yml.example в docker-compose.override.yml —
+# тогда образ будет собираться из текущей папки и код будет подмонтирован.
+# На сервере: в .env задай IMAGE_NAME=ghcr.io/владелец/репо:latest и не создавай override.
 
 services:
   todo-api:
-    build: .
+    image: ${IMAGE_NAME}
+    depends_on:
+      - postgres
     ports:
       - "${PORT}:8000"
-    volumes:
-      - ./app:/app/app
-      - ./main.py:/app/main.py
     environment:
       - DEBUG=${DEBUG}
       - RELOAD=${RELOAD}
-    command: ["uvicorn", "main:app", "--host", "${HOST}", "--port", "${PORT}", "${EXTRA_ARGS}"]
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
     restart: unless-stopped
     container_name: todo-api-container
-    
-  # Можно добавить базу данных (например, PostgreSQL)
+
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: todolist
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -29,4 +31,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data: 
+  postgres_data:
