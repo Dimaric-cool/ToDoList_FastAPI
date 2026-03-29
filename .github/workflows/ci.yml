@@ -64,9 +64,9 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ toLower(github.repository) }}:latest
-            ghcr.io/${{ toLower(github.repository) }}:${{ github.sha }}
-  
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+
   # Job 3: Финальное сообщение
   success:
     name: Готово!
