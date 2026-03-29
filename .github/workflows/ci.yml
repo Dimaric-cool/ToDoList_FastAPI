@@ -50,6 +50,22 @@ jobs:
       - name: 📋 Информация об образе
         run: |
           docker images | grep todolist-api
+
+      - name: Вход в GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Сборка и пуш образа
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ toLower(github.repository) }}:latest
+            ghcr.io/${{ toLower(github.repository) }}:${{ github.sha }}
   
   # Job 3: Финальное сообщение
   success:
