@@ -6,6 +6,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:  # Кнопка "Run workflow" в GitHub
 
+permissions:
+  contents: read
+  packages: write   # Без этого нельзя пушить в ghcr.io
+
 jobs:
   # Job 1: Проверка кода
   check-code:
