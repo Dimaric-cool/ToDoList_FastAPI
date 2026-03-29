@@ -9,17 +9,21 @@ USER root
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
 # Скачиваем готовый бинарник Goose для Linux amd64
-RUN wget -q https://github.com/pressly/goose/releases/download/v3.26.0/goose_linux_x86_64 -O /usr/local/bin/goose && \
+RUN wget --tries=5 --timeout=60 --user-agent="Docker" \
+    https://github.com/pressly/goose/releases/download/v3.26.0/goose_linux_x86_64 -O /usr/local/bin/goose && \
     chmod +x /usr/local/bin/goose
 
 # Копируем файл зависимостей
 COPY requirements.txt .
 
 # Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout 120 --retries 5 -r requirements.txt
 
 # Копируем код приложения
 COPY . .
+
+# Конвертируем CRLF в LF (важно для Windows-хостов)
+RUN sed -i 's/\r$//' startup.sh
 
 # Делаем startup.sh исполняемым
 RUN chmod +x startup.sh
