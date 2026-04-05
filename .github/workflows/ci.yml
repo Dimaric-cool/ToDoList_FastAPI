@@ -75,7 +75,28 @@ jobs:
           tags: |
             ghcr.io/${{ steps.repo_lower.outputs.LOWER_NAME }}:latest
             ghcr.io/${{ steps.repo_lower.outputs.LOWER_NAME }}:${{ github.sha }}
-
+  
+  deploy:
+    name: Деплой на сервер
+    runs-on: ubuntu-latest
+    needs: build-docker
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: 📡 Подключение по SSH и обновление контейнеров
+        uses: appleboy/ssh-action@v1.0.3   # популярный action для SSH
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          # Для безопасности: fingerprint хоста (можно получить ssh-keyscan)
+          # fingerprint: ${{ secrets.DEPLOY_FINGERPRINT }}  # опционально, но улучшает безопасность
+          script: |
+            cd /home/developer/projects/ToDoList_FastAPI   
+            docker-compose pull
+            docker-compose up -d
+            # Очистка старых образов (опционально)
+            docker image prune -f
+        
   # Job 3: Финальное сообщение
   success:
     name: Готово!
@@ -92,6 +113,6 @@ jobs:
           echo "Что было сделано:"
           echo "  ✓ Проверен код"
           echo "  ✓ Собран Docker образ"
-          echo ""
+          echo "  ✓ Докер образ отправлен в GitHub Container Registry"
           echo "Ваш первый CI работает! 🚀"
 
