@@ -91,7 +91,8 @@ jobs:
           # Для безопасности: fingerprint хоста (можно получить ssh-keyscan)
           # fingerprint: ${{ secrets.DEPLOY_FINGERPRINT }}  # опционально, но улучшает безопасность
           script: |
-            cd /home/developer/projects/ToDoList_FastAPI   
+            cd /home/developer/projects/ToDoList_FastAPI  
+            docker compose down
             docker compose pull
             docker compose up -d
             # Очистка старых образов (опционально)
