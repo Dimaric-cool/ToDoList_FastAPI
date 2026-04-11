@@ -48,7 +48,7 @@ goose install github.com/pressly/goose/v3/cmd/goose@latest
 ## Структура проекта
 
 ```
-ToDoList_FastAPI/
+ToDoList_FastAPI
 ├── app/
 │   ├── models/         # Модели данных
 │   ├── repositories/   # Репозитории для работы с данными
