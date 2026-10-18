@@ -4,6 +4,9 @@
 
 services:
   todo-api:
+    build:
+      platforms:
+        - linux/amd64
     image: ${IMAGE_NAME}
     depends_on:
       - postgres
