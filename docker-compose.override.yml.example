@@ -1,0 +1,10 @@
+# Только для локальной разработки.
+# Скопируй в docker-compose.override.yml:  cp docker-compose.override.yml.example docker-compose.override.yml
+# Тогда при docker-compose up образ соберётся из текущей папки и папка app будет подмонтирована (изменения без пересборки).
+
+services:
+  todo-api:
+    build: .
+    volumes:
+      - ./app:/app/app
+      - ./main.py:/app/main.py
